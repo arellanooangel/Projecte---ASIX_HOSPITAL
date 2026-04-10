@@ -1,0 +1,12 @@
+Per instal·lar les llibreries haurem de fer aquets passos:
+
+    Cerca “Edita les variables d'entorn del sistema” al Windows.
+    A Variables d'entorn, seleccioneu Path a les variables del sistema.
+    Afegeix les rutes següents (ajusta-les segons la teva versió de Python):
+        C:\Users\Usuari\AppData\Local\Programs\Python\Python312\
+        C:\Users\Usuari\AppData\Local\Programs\Python\Python312\Scripts\
+    Accepteu els canvis i reinicieu PowerShell.
+
+
+# Executar la seguent comanda a la terminal
+py -m pip install -r ".\Connection and Login\requeriments.txt"
