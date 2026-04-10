@@ -258,10 +258,10 @@ tk.Button(register_frame, text="Registrar Usuari", command=register_user).pack(p
 
 notebook.bind("<<NotebookTabChanged>>", on_tab_changed)
 
-
+"""Crea un footer per la interfície gràfica"""
 footer = tk.Label(
     root,
-    text="Projecte Intermodular ASIX 2025/2026 - Angel & Unai",
+    text="Projecte Intermodular ASIX 2025/2026 - Angel & Unai✨",
     bg="#f0f4f7",
     fg="gray",
     font=("Arial", 9)
@@ -270,6 +270,3 @@ footer.pack(pady=5)
 
 
 root.mainloop()
-
-conn = get_connection()
-print(conn)
