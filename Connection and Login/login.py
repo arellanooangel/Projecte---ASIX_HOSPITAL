@@ -1,3 +1,6 @@
+# --------------------------
+# Importació llibreries
+# --------------------------
 import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog
 import hashlib
@@ -45,7 +48,7 @@ def register_user():
     if password != confirm_password:
         messagebox.showerror("Error", "Les contrasenyes no coincideixen.")
         return
-
+    # Connexió a la BD
     connection = get_connection()
 
     if not connection:
@@ -65,7 +68,7 @@ def register_user():
             messagebox.showerror("Error", "L'usuari ja existeix.")
             return
 
-        # inserir usuari
+        # inserir usuari (amb contransenya xifrada)
         cursor.execute("""
             INSERT INTO usuaris (username, password, role)
             VALUES (%s, %s, %s)
@@ -84,9 +87,11 @@ def register_user():
         reg_pass.delete(0, tk.END)
         reg_confirm.delete(0, tk.END)
 
+    # Missatge error
     except Exception as e:
         messagebox.showerror("Error", f"Error registre: {e}")
 
+    # Missatge tancament de connexió
     finally:
         cursor.close()
         connection.close()
@@ -112,7 +117,7 @@ def login_user():
 
     try:
         cursor = connection.cursor()
-
+        # Consulta a la BD per verificar que coincideixin
         cursor.execute("""
             SELECT role 
             FROM usuaris
@@ -131,7 +136,7 @@ def login_user():
                 "Benvingut",
                 f"Benvingut/da {username}!\nRol: {role}"
             )
-
+            # Si existeix la coincidencia de la contrasenya tanca l'aplicació
             root.destroy()
 
         else:
@@ -170,7 +175,7 @@ def verify_staff_access(event):
     else:
         messagebox.showinfo("Accés concedit", "Pots registrar nou personal.")
 
-
+# Detecta quan l'usuari canvia de pestanya en el Notebook, si intenta accedir a "Registrar Personal" s'executa la verificació d'accés
 def on_tab_changed(event):
     selected_tab = event.widget.select()
     tab_text = event.widget.tab(selected_tab, "text")
@@ -180,7 +185,7 @@ def on_tab_changed(event):
 
 
 # ------------------------------
-# INTERFÍCIE GRÀFICA (IGUAL)
+# INTERFÍCIE GRÀFICA
 # ------------------------------
 
 root = tk.Tk()
@@ -189,13 +194,13 @@ root.geometry("420x450")
 root.resizable(False, False)
 root.configure(bg="#f0f4f7")
 
-
+# Estils
 style = ttk.Style()
 style.theme_use('default')
 style.configure('TNotebook.Tab', font=('Arial', 11, 'bold'), padding=[10, 5])
 style.configure('TButton', font=('Arial', 10, 'bold'))
 
-
+# Titol (capçalera de l'aplicació)
 title = tk.Label(
     root,
     text="🏥 Sistema d'Autenticació",
@@ -205,7 +210,7 @@ title = tk.Label(
 )
 title.pack(pady=15)
 
-
+# Pestanyes Notebook (permeteix dividir l'interfície en dos pestanyes)
 notebook = ttk.Notebook(root)
 notebook.pack(expand=True, fill="both", padx=20, pady=10)
 
@@ -255,10 +260,10 @@ reg_role.pack()
 
 tk.Button(register_frame, text="Registrar Usuari", command=register_user).pack(pady=15)
 
-
+# Canvi de pestanya
 notebook.bind("<<NotebookTabChanged>>", on_tab_changed)
 
-"""Crea un footer per la interfície gràfica"""
+# Crea un footer informatiu en la part inferior de la interfície gràfica
 footer = tk.Label(
     root,
     text="Projecte Intermodular ASIX 2025/2026 - Angel & Unai✨",
@@ -268,5 +273,5 @@ footer = tk.Label(
 )
 footer.pack(pady=5)
 
-
+# ---------------- EXECUCIÓ DE L'APLICACIÓ ----------------
 root.mainloop()

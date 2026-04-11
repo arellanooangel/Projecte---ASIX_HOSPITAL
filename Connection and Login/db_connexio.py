@@ -12,5 +12,5 @@ def get_connection():
         return connection
 
     except Exception as e:
-        print("Error de conexión:", e)
+        print("Error de connexió:", e)
         return None
