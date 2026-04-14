@@ -11,6 +11,10 @@
 
 **PERSONAL** ((PK)*id_personal*, dni, nom, cognom1, cognom2, email, user, password)
 
+**USUARI** ((PK)*usuari*, contrasenya, id_personal)
+
+ON (id_personal) REFERENCIA PERSONAL (id_personal)
+
 **VARI** ((PK)*id_personal*, feina)
 
 ON (id_personal) REFERENCIA PERSONAL (id_personal)
@@ -53,8 +57,7 @@ ON (tarjeta_sanitaria) REFERENCIA PACIENT (tarjeta_sanitaria)
 
 ON (id_habitacio) REFERENCIA HABITACIO (id_habitacio)
 
-**OPERACIO** ((PK)*id_operacio*, descripcio, data_hora, (FK) targeta_sanitaria, id_metge,
-(FK) id_infermer, (FK) id_planta, (FK) id_quirofan)
+**OPERACIO** ((PK)*id_operacio*, descripcio, data_hora, targeta_sanitaria, id_metge, id_infermer, id_planta, id_quirofan)
 
 ON (tarjeta_sanitaria) REFERENCIA PACIENT (tarjeta_sanitaria)
 
