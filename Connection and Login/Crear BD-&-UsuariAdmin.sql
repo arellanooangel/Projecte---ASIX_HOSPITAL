@@ -1,3 +1,5 @@
+CREATE DATABASE hospital;
+
 -- Crear extensió per al hash
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
