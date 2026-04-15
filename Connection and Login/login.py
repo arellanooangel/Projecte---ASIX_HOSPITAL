@@ -132,7 +132,7 @@ reg_role.pack(pady=5)
 ttk.Button(register_frame, text="Registrar Usuari", command=register_user).pack(pady=15)
 
 
-# FOOTER (IGUAL)
+# FOOTER
 footer = tk.Label(
     root,
     text="Projecte Intermodular ASIX 2025/2026 - Angel & Unai",
