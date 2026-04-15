@@ -1,0 +1,276 @@
+--ELIMINACIO PER FER PROVES
+
+DROP TABLE IF EXISTS operacio_infermer CASCADE;
+DROP TABLE IF EXISTS visita_medicament CASCADE;
+DROP TABLE IF EXISTS quirofan_aparell CASCADE;
+DROP TABLE IF EXISTS operacio CASCADE;
+DROP TABLE IF EXISTS ingres CASCADE;
+DROP TABLE IF EXISTS visita CASCADE;
+DROP TABLE IF EXISTS inferm_metge CASCADE;
+DROP TABLE IF EXISTS inferm_planta CASCADE;
+DROP TABLE IF EXISTS habitacio CASCADE;
+DROP TABLE IF EXISTS quirofan CASCADE;
+DROP TABLE IF EXISTS infermer CASCADE;
+DROP TABLE IF EXISTS metge CASCADE;
+DROP TABLE IF EXISTS vari CASCADE;
+DROP TABLE IF EXISTS usuari CASCADE;
+DROP TABLE IF EXISTS personal CASCADE;
+DROP TABLE IF EXISTS pacient CASCADE;
+DROP TABLE IF EXISTS planta CASCADE;
+DROP TABLE IF EXISTS aparell CASCADE;
+DROP TABLE IF EXISTS medicament CASCADE;
+DROP TABLE IF EXISTS especialitat CASCADE;
+
+
+CREATE TABLE especialitat (
+    id_especialitat SERIAL PRIMARY KEY,
+    descripcio VARCHAR(255) NOT NULL
+);
+
+
+CREATE TABLE medicament (
+    id_medicament SERIAL PRIMARY KEY,
+    nom VARCHAR(255) NOT NULL
+);
+
+
+CREATE TABLE aparell (
+    id_aparell SERIAL PRIMARY KEY,
+    descripcio VARCHAR(255) NOT NULL
+);
+
+
+CREATE TABLE planta (
+    id_planta SERIAL PRIMARY KEY,
+    descripcio VARCHAR(255) NOT NULL
+);
+
+
+CREATE TABLE pacient (
+    targeta_sanitaria VARCHAR(20) PRIMARY KEY,
+    nom VARCHAR(100) NOT NULL,
+    cognom1 VARCHAR(100) NOT NULL,
+    cognom2 VARCHAR(100),
+    data_naixement DATE NOT NULL
+);
+
+
+CREATE TABLE personal (
+    id_personal SERIAL PRIMARY KEY,
+    dni VARCHAR(9) NOT NULL UNIQUE,
+    nom VARCHAR(100) NOT NULL,
+    cognom1 VARCHAR(100) NOT NULL,
+    cognom2 VARCHAR(100),
+    email VARCHAR(255) UNIQUE
+);
+
+
+CREATE TABLE usuari (
+    usuari VARCHAR(50) PRIMARY KEY,
+    contrasenya VARCHAR(255) NOT NULL,
+    estat VARCHAR(20) NOT NULL DEFAULT 'actiu',
+    id_personal INTEGER NOT NULL,
+    
+    CONSTRAINT fk_usuari_personal 
+        FOREIGN KEY (id_personal) 
+        REFERENCES personal(id_personal)
+);
+
+
+CREATE TABLE vari (
+    id_personal INTEGER PRIMARY KEY,
+    feina VARCHAR(255) NOT NULL,
+    
+    CONSTRAINT fk_vari_personal 
+        FOREIGN KEY (id_personal) 
+        REFERENCES personal(id_personal)
+);
+
+
+CREATE TABLE metge (
+    id_personal INTEGER PRIMARY KEY,
+    estudis VARCHAR(255) NOT NULL,
+    experiencia VARCHAR(255),
+    id_especialitat INTEGER NOT NULL,
+    
+    CONSTRAINT fk_metge_personal 
+        FOREIGN KEY (id_personal) 
+        REFERENCES personal(id_personal),
+    
+    CONSTRAINT fk_metge_especialitat 
+        FOREIGN KEY (id_especialitat) 
+        REFERENCES especialitat(id_especialitat)
+);
+
+
+CREATE TABLE infermer (
+    id_personal INTEGER PRIMARY KEY,
+    curs VARCHAR(255),
+    experiencia VARCHAR(255),
+    
+    CONSTRAINT fk_infermer_personal 
+        FOREIGN KEY (id_personal) 
+        REFERENCES personal(id_personal)
+);
+
+
+CREATE TABLE habitacio (
+    id_habitacio SERIAL PRIMARY KEY,
+    descripcio VARCHAR(255) NOT NULL,
+    id_planta INTEGER NOT NULL,
+    
+    CONSTRAINT fk_habitacio_planta 
+        FOREIGN KEY (id_planta) 
+        REFERENCES planta(id_planta)
+);
+
+
+CREATE TABLE quirofan (
+    id_quirofan INTEGER NOT NULL,
+    id_planta INTEGER NOT NULL,
+    
+    CONSTRAINT pk_quirofan 
+        PRIMARY KEY (id_planta, id_quirofan),
+    
+    CONSTRAINT fk_quirofan_planta 
+        FOREIGN KEY (id_planta) 
+        REFERENCES planta(id_planta)
+);
+
+
+CREATE TABLE inferm_planta (
+    id_personal INTEGER PRIMARY KEY,
+    id_planta INTEGER NOT NULL,
+    
+    CONSTRAINT fk_inferm_planta_infermer 
+        FOREIGN KEY (id_personal) 
+        REFERENCES infermer(id_personal),
+    
+    CONSTRAINT fk_inferm_planta_planta 
+        FOREIGN KEY (id_planta) 
+        REFERENCES planta(id_planta)
+);
+
+
+CREATE TABLE inferm_metge (
+    id_personal INTEGER PRIMARY KEY,
+    id_metge INTEGER NOT NULL,
+    
+    CONSTRAINT fk_inferm_metge_infermer 
+        FOREIGN KEY (id_personal) 
+        REFERENCES infermer(id_personal),
+    
+    CONSTRAINT fk_inferm_metge_metge 
+        FOREIGN KEY (id_metge) 
+        REFERENCES metge(id_personal)
+);
+
+
+CREATE TABLE visita (
+    id_visita SERIAL PRIMARY KEY,
+    data_hora TIMESTAMP NOT NULL,
+    diagnostic TEXT,
+    id_metge INTEGER NOT NULL,
+    targeta_sanitaria VARCHAR(20) NOT NULL,
+    
+    CONSTRAINT fk_visita_metge 
+        FOREIGN KEY (id_metge) 
+        REFERENCES metge(id_personal),
+    
+    CONSTRAINT fk_visita_pacient 
+        FOREIGN KEY (targeta_sanitaria) 
+        REFERENCES pacient(targeta_sanitaria)
+);
+
+
+CREATE TABLE ingres (
+    id_ingres SERIAL PRIMARY KEY,
+    data_ingres TIMESTAMP NOT NULL,
+    data_alta TIMESTAMP,
+    targeta_sanitaria VARCHAR(20) NOT NULL,
+    id_habitacio INTEGER NOT NULL,
+    
+    CONSTRAINT fk_ingres_pacient 
+        FOREIGN KEY (targeta_sanitaria) 
+        REFERENCES pacient(targeta_sanitaria),
+    
+    CONSTRAINT fk_ingres_habitacio 
+        FOREIGN KEY (id_habitacio) 
+        REFERENCES habitacio(id_habitacio)
+);
+
+
+CREATE TABLE operacio (
+    id_operacio SERIAL PRIMARY KEY,
+    descripcio VARCHAR(255) NOT NULL,
+    data_hora TIMESTAMP NOT NULL,
+    targeta_sanitaria VARCHAR(20) NOT NULL,
+    id_metge INTEGER NOT NULL,
+    id_planta INTEGER NOT NULL,
+    id_quirofan INTEGER NOT NULL,
+    
+    CONSTRAINT fk_operacio_pacient 
+        FOREIGN KEY (targeta_sanitaria) 
+        REFERENCES pacient(targeta_sanitaria),
+    
+    CONSTRAINT fk_operacio_metge 
+        FOREIGN KEY (id_metge) 
+        REFERENCES metge(id_personal),
+    
+    CONSTRAINT fk_operacio_quirofan 
+        FOREIGN KEY (id_planta, id_quirofan) 
+        REFERENCES quirofan(id_planta, id_quirofan)
+);
+
+
+CREATE TABLE quirofan_aparell (
+    id_planta INTEGER NOT NULL,
+    id_quirofan INTEGER NOT NULL,
+    id_aparell INTEGER NOT NULL,
+    quantitat INTEGER NOT NULL DEFAULT 1,
+    
+    CONSTRAINT pk_quirofan_aparell 
+        PRIMARY KEY (id_planta, id_quirofan, id_aparell),
+    
+    CONSTRAINT fk_quirofan_aparell_quirofan 
+        FOREIGN KEY (id_planta, id_quirofan) 
+        REFERENCES quirofan(id_planta, id_quirofan),
+    
+    CONSTRAINT fk_quirofan_aparell_aparell 
+        FOREIGN KEY (id_aparell) 
+        REFERENCES aparell(id_aparell)
+);
+
+
+CREATE TABLE visita_medicament (
+    id_visita INTEGER NOT NULL,
+    id_medicament INTEGER NOT NULL,
+    
+    CONSTRAINT pk_visita_medicament 
+        PRIMARY KEY (id_visita, id_medicament),
+    
+    CONSTRAINT fk_visita_medicament_visita 
+        FOREIGN KEY (id_visita) 
+        REFERENCES visita(id_visita),
+    
+    CONSTRAINT fk_visita_medicament_medicament 
+        FOREIGN KEY (id_medicament) 
+        REFERENCES medicament(id_medicament)
+);
+
+
+CREATE TABLE operacio_infermer (
+    id_operacio INTEGER NOT NULL,
+    id_infermer INTEGER NOT NULL,
+    
+    CONSTRAINT pk_operacio_infermer 
+        PRIMARY KEY (id_operacio, id_infermer),
+    
+    CONSTRAINT fk_operacio_infermer_operacio 
+        FOREIGN KEY (id_operacio) 
+        REFERENCES operacio(id_operacio),
+    
+    CONSTRAINT fk_operacio_infermer_infermer 
+        FOREIGN KEY (id_infermer) 
+        REFERENCES infermer(id_personal)
+);
