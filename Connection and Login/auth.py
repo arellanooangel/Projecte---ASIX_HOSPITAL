@@ -3,7 +3,7 @@ from db_connexio import get_connection
 
 
 # ------------------------------
-# ADMIN VERIFY
+# ADMIN VERIFICACIÓ
 # ------------------------------
 
 def verify_admin_credentials():
@@ -52,7 +52,7 @@ def verify_admin_credentials():
 
 
 # ------------------------------
-# REGISTER
+# REGISTRE
 # ------------------------------
 
 def register_user_db(username, password, role):
