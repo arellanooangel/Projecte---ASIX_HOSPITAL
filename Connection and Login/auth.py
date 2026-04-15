@@ -1,32 +1,12 @@
-# ------------------------------
-# -- Importació de llibreries --
-# ------------------------------
-
-import hashlib
 from tkinter import messagebox, simpledialog
 from db_connexio import get_connection
 
-# ---------------------------
-# -- Funció de xifrat SHA-256
-# ---------------------------
 
-def hash_password(password):
-    """
-    Converteix la contrasenya en un hash SHA-256
-    per evitar guardar-la en text pla.
-    """
-    return hashlib.sha256(password.encode()).hexdigest()
-
-# ---------------------------------------------------
-# -- Verificació de credencials d'administrador --
-# ---------------------------------------------------
+# ------------------------------
+# ADMIN VERIFY
+# ------------------------------
 
 def verify_admin_credentials():
-    """
-    Demana les credencials de l'administrador quan s'accedeix
-    a la pestanya 'Registrar Personal'. Només permet l'accés
-    si l'usuari és 'ua-admin' i té rol 'admin'.
-    """
     username = simpledialog.askstring(
         "Autenticació d'administrador",
         "Introdueix el nom d'usuari administrador:"
@@ -44,138 +24,96 @@ def verify_admin_credentials():
     if password is None:
         return False
 
-    connection = get_connection()
-
-    if not connection:
-        messagebox.showerror("Error", "No es pot connectar a la base de dades.")
+    conn = get_connection()
+    if not conn:
         return False
 
     try:
-        cursor = connection.cursor()
+        cur = conn.cursor()
 
-        query = """
-            SELECT role FROM usuaris
-            WHERE username = %s AND password = %s
-        """
-        cursor.execute(query, (username, hash_password(password)))
-        result = cursor.fetchone()
+        cur.execute("""
+            SELECT role
+            FROM usuaris
+            WHERE username = %s
+            AND password = encode(digest(%s,'sha256'),'hex')
+        """, (username, password))
 
-        if result and result[0] == "admin" and username == "ua-admin":
-            messagebox.showinfo(
-                "Accés concedit",
-                "Benvingut administrador."
-            )
-            return True
-        else:
-            messagebox.showerror(
-                "Accés denegat",
-                "Credencials incorrectes o sense permisos d'administrador."
-            )
-            return False
+        result = cur.fetchone()
+
+        return bool(result and result[0] == "admin")
 
     except Exception as e:
-        messagebox.showerror(
-            "Error",
-            f"Error en la verificació: {e}"
-        )
+        messagebox.showerror("Error", str(e))
         return False
 
     finally:
-        cursor.close()
-        connection.close()
+        cur.close()
+        conn.close()
+
 
 # ------------------------------
-# -- Registre d'usuaris --
+# REGISTER
 # ------------------------------
 
 def register_user_db(username, password, role):
-    """
-    Registra un nou usuari a la base de dades PostgreSQL.
-    """
-    connection = get_connection()
-
-    if not connection:
-        messagebox.showerror("Error", "No es pot connectar a la base de dades.")
+    conn = get_connection()
+    if not conn:
         return False
 
     try:
-        cursor = connection.cursor()
+        cur = conn.cursor()
 
-        # Comprovar si l'usuari ja existeix
-        cursor.execute(
-            "SELECT username FROM usuaris WHERE username = %s",
-            (username,)
-        )
-        if cursor.fetchone():
-            messagebox.showerror("Error", "L'usuari ja existeix.")
+        cur.execute("SELECT username FROM usuaris WHERE username=%s", (username,))
+        if cur.fetchone():
+            messagebox.showerror("Error", "Usuari ja existeix")
             return False
 
-        # Inserir usuari
-        query = """
+        cur.execute("""
             INSERT INTO usuaris (username, password, role)
-            VALUES (%s, %s, %s)
-        """
-        cursor.execute(query, (
-            username,
-            hash_password(password),
-            role
-        ))
+            VALUES (%s, encode(digest(%s,'sha256'),'hex'), %s)
+        """, (username, password, role))
 
-        connection.commit()
-        messagebox.showinfo("Èxit", "Usuari registrat correctament.")
+        conn.commit()
+        messagebox.showinfo("OK", "Usuari registrat")
         return True
 
     except Exception as e:
-        messagebox.showerror("Error", f"Error en el registre: {e}")
+        messagebox.showerror("Error", str(e))
         return False
 
     finally:
-        cursor.close()
-        connection.close()
+        cur.close()
+        conn.close()
+
 
 # ------------------------------
-# -- Inici de sessió --
+# LOGIN
 # ------------------------------
 
 def login_user_db(username, password):
-    """
-    Verifica les credencials d'un usuari contra PostgreSQL.
-    Retorna el rol si el login és correcte.
-    """
-    connection = get_connection()
+    conn = get_connection()
 
-    if not connection:
-        messagebox.showerror("Error", "No es pot connectar a la base de dades.")
+    if not conn:
         return None
 
     try:
-        cursor = connection.cursor()
+        cur = conn.cursor()
 
-        query = """
-            SELECT role FROM usuaris
-            WHERE username = %s AND password = %s
-        """
-        cursor.execute(query, (username, hash_password(password)))
-        result = cursor.fetchone()
+        cur.execute("""
+            SELECT role
+            FROM usuaris
+            WHERE username=%s
+            AND password=encode(digest(%s,'sha256'),'hex')
+        """, (username, password))
 
-        if result:
-            role = result[0]
-            messagebox.showinfo(
-                "Benvingut",
-                f"Benvingut/da {username}!\nRol: {role}"
-            )
-            return role
-        else:
-            messagebox.showerror(
-                "Error",
-                "Usuari o contrasenya incorrectes."
-            )
-            return None
+        result = cur.fetchone()
+
+        return result[0] if result else None
 
     except Exception as e:
-        messagebox.showerror("Error", f"Error en el login: {e}")
+        messagebox.showerror("Error", str(e))
         return None
 
     finally:
-        cursor.close()
-        connection.close()
+        cur.close()
+        conn.close()
