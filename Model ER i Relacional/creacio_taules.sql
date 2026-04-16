@@ -88,11 +88,20 @@ CREATE TABLE usuaris (
 );
 
 -- Admin per defecte (hash SHA-256)
-INSERT INTO usuaris (username, password, estat)
+INSERT INTO personal (dni, nom, cognom1, cognom2, email)
+VALUES (
+    '48197077W',
+    'Angel',
+    'Arellano',
+    'Diaz',
+    'a.arellano@ua.es'
+);
+INSERT INTO usuaris (username, password, estat, id_personal)
 VALUES (
     'ua-admin',
     encode(digest('admin123', 'sha256'), 'hex'),
-    'actiu'
+    'actiu',
+    1
 )
 ON CONFLICT (username) DO NOTHING;
 
