@@ -108,7 +108,6 @@ ON CONFLICT (username) DO NOTHING;
 -- =========================
 -- ROLES PERSONAL
 -- =========================
-
 CREATE TABLE vari (
     id_personal INTEGER PRIMARY KEY,
     feina VARCHAR(255) NOT NULL,
