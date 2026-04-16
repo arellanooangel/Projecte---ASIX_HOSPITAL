@@ -80,7 +80,7 @@ CREATE TABLE usuaris (
     id SERIAL PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
     password TEXT NOT NULL,
-    role VARCHAR(20) NOT NULL,
+    estat VARCHAR(10) NOT NULL default 'actiu',
     id_personal INTEGER,
 
     CONSTRAINT fk_usuaris_personal
@@ -89,7 +89,7 @@ CREATE TABLE usuaris (
 );
 
 -- Admin per defecte (hash SHA-256)
-INSERT INTO usuaris (username, password, role)
+INSERT INTO usuaris (username, password, estat)
 VALUES (
     'ua-admin',
     encode(digest('admin123', 'sha256'), 'hex'),
