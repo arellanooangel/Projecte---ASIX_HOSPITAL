@@ -77,10 +77,9 @@ CREATE TABLE personal (
 -- USUARIS (INTEGRAT AMB pgcrypto)
 -- =========================
 CREATE TABLE usuaris (
-    id SERIAL PRIMARY KEY,
-    username VARCHAR(50) UNIQUE NOT NULL,
+    username VARCHAR(50) PRIMARY KEY,
     password TEXT NOT NULL,
-    estat VARCHAR(10) NOT NULL default 'actiu',
+    estat VARCHAR(7) NOT NULL default 'actiu',
     id_personal INTEGER,
 
     CONSTRAINT fk_usuaris_personal
