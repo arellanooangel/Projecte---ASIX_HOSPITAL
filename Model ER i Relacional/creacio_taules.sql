@@ -93,7 +93,7 @@ INSERT INTO usuaris (username, password, estat)
 VALUES (
     'ua-admin',
     encode(digest('admin123', 'sha256'), 'hex'),
-    'admin'
+    'actiu'
 )
 ON CONFLICT (username) DO NOTHING;
 
