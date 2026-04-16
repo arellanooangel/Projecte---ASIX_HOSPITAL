@@ -77,10 +77,9 @@ CREATE TABLE personal (
 -- USUARIS (INTEGRAT AMB pgcrypto)
 -- =========================
 CREATE TABLE usuaris (
-    id SERIAL PRIMARY KEY,
-    username VARCHAR(50) UNIQUE NOT NULL,
+    username VARCHAR(50) PRIMARY KEY,
     password TEXT NOT NULL,
-    role VARCHAR(20) NOT NULL,
+    estat VARCHAR(7) NOT NULL default 'actiu',
     id_personal INTEGER,
 
     CONSTRAINT fk_usuaris_personal
@@ -89,11 +88,20 @@ CREATE TABLE usuaris (
 );
 
 -- Admin per defecte (hash SHA-256)
-INSERT INTO usuaris (username, password, role)
+INSERT INTO personal (dni, nom, cognom1, cognom2, email)
+VALUES (
+    '48197077W',
+    'Angel',
+    'Arellano',
+    'Diaz',
+    'a.arellano@ua.es'
+);
+INSERT INTO usuaris (username, password, estat, id_personal)
 VALUES (
     'ua-admin',
     encode(digest('admin123', 'sha256'), 'hex'),
-    'admin'
+    'actiu',
+    1
 )
 ON CONFLICT (username) DO NOTHING;
 

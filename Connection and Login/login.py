@@ -1,145 +1,105 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-from auth import register_user_db, login_user_db, verify_admin_credentials
-
-
-# -------------------------------------------
-# LOGIN
-# -------------------------------------------
+from auth import register_personal_db, login_user_db, verify_admin_credentials
 
 def login_user():
-    username = log_user.get().strip()
-    password = log_pass.get()
-
-    role = login_user_db(username, password)
-
+    u, p = log_user.get().strip(), log_pass.get()
+    role = login_user_db(u, p)
     if role:
-        messagebox.showinfo("OK", f"Login correcte. Rol: {role}")
-        root.destroy()
+        messagebox.showinfo("Sistema UA", f"Login correcte.\nBenvingut/da: {u}\nRol: {role.upper()}")
     else:
-        messagebox.showerror("Error", "Usuari o contrasenya incorrectes")
-
-
-# -------------------------------------------
-# REGISTER
-# -------------------------------------------
+        messagebox.showerror("Error", "Usuari o contrasenya incorrectes.")
 
 def register_user():
-    username = reg_user.get().strip()
-    password = reg_pass.get()
-    confirm = reg_confirm.get()
+    # Recollida de totes les dades del formulari
+    d, n, c1, c2, em = reg_dni.get().strip(), reg_nom.get().strip(), \
+                       reg_c1.get().strip(), reg_c2.get().strip(), reg_email.get().strip()
+    u, p = reg_user.get().strip(), reg_pass.get()
     role = reg_role.get()
 
-    if not username or not password:
-        messagebox.showerror("Error", "Cal omplir tots els camps.")
+    if not d or not n or not u or not p:
+        messagebox.showerror("Error", "Els camps amb (*) són obligatoris.")
         return
 
-    if password != confirm:
-        messagebox.showerror("Error", "Les contrasenyes no coincideixen.")
-        return
-
-    register_user_db(username, password, role)
-
-
-# -------------------------------------------
-# CONTROL PESTAÑA ADMIN
-# -------------------------------------------
+    # Enviem els 8 paràmetres (Dades personals + Accés + Rol)
+    if register_personal_db(d, n, c1, c2, em, u, p, role):
+        messagebox.showinfo("Èxit", f"Personal registrat correctament com a {role.upper()}")
+        # Neteja de camps
+        for entry in [reg_dni, reg_nom, reg_c1, reg_c2, reg_email, reg_user, reg_pass]:
+            entry.delete(0, tk.END)
 
 def on_tab_changed(event):
     tab = event.widget.tab(event.widget.select(), "text")
-
     if tab == "Registrar Personal":
         if not verify_admin_credentials():
-            messagebox.showwarning(
-                "Accés denegat",
-                "Només administrador pot accedir."
-            )
+            messagebox.showwarning("Accés Denegat", "Cal ser administrador per registrar nou personal.")
             event.widget.select(0)
 
-
-# -------------------------------------------
-# INTERFÍCIE (TU ORIGINAL)
-# -------------------------------------------
-
+# --- CONFIGURACIÓ DE LA FINESTRA ---
 root = tk.Tk()
-root.title("UA Hospital de Blanes - Sistema d'Accés")
-root.geometry("420x460")
+root.title("UA Hospital de Blanes - Gestió")
+root.geometry("420x600")
 root.resizable(False, False)
 root.configure(bg="#f0f4f7")
 
+# Estils
 style = ttk.Style()
 style.theme_use('default')
-style.configure('TNotebook.Tab', font=('Arial', 11, 'bold'), padding=[10, 5])
+style.configure('TNotebook.Tab', font=('Arial', 10, 'bold'), padding=[10, 5])
 style.configure('TButton', font=('Arial', 10, 'bold'))
 
-title = tk.Label(
-    root,
-    text="🏥 UA - Sistema d'Autenticació",
-    font=("Arial", 18, "bold"),
-    bg="#f0f4f7",
-    fg="#2c3e50"
-)
-title.pack(pady=15)
+tk.Label(root, text="🏥 UA - Sistema d'Autenticació", font=("Arial", 16, "bold"), 
+         bg="#f0f4f7", fg="#2c3e50").pack(pady=15)
 
 notebook = ttk.Notebook(root)
-notebook.pack(expand=True, fill="both", padx=20, pady=10)
-
+notebook.pack(expand=True, fill="both", padx=20, pady=5)
 notebook.bind("<<NotebookTabChanged>>", on_tab_changed)
 
-# ------------------ LOGIN ------------------
+# --- PESTANYA LOGIN ---
+f_log = tk.Frame(notebook, bg="white")
+notebook.add(f_log, text="Iniciar Sessió")
 
-login_frame = tk.Frame(notebook, bg="white")
-notebook.add(login_frame, text="Iniciar Sessió")
+tk.Label(f_log, text="👤 Usuari", bg="white").pack(pady=(30, 5))
+log_user = tk.Entry(f_log, width=30); log_user.pack()
 
-tk.Label(login_frame, text="👤 Nom d'usuari", bg="white").pack(pady=(20, 5))
-log_user = tk.Entry(login_frame, width=30)
-log_user.pack(pady=5)
+tk.Label(f_log, text="🔒 Contrasenya", bg="white").pack(pady=(15, 5))
+log_pass = tk.Entry(f_log, show="*", width=30); log_pass.pack()
 
-tk.Label(login_frame, text="🔒 Contrasenya", bg="white").pack(pady=5)
-log_pass = tk.Entry(login_frame, show="*", width=30)
-log_pass.pack(pady=5)
+ttk.Button(f_log, text="Entrar al Sistema", command=login_user).pack(pady=30)
 
-ttk.Button(login_frame, text="Iniciar Sessió", command=login_user).pack(pady=20)
+# --- PESTANYA REGISTRE ---
+f_reg = tk.Frame(notebook, bg="white")
+notebook.add(f_reg, text="Registrar Personal")
 
+# Formulari Dades Personals
+fields = [("DNI*", "reg_dni"), ("Nom*", "reg_nom"), ("Primer Cognom*", "reg_c1"), 
+          ("Segon Cognom", "reg_c2"), ("Email*", "reg_email")]
 
-# ---------------- REGISTER -----------------
+for lbl, var_name in fields:
+    tk.Label(f_reg, text=lbl, bg="white", font=("Arial", 8)).pack(pady=(5,0))
+    en = tk.Entry(f_reg, width=30)
+    en.pack()
+    globals()[var_name] = en # Crea reg_dni, reg_nom, etc.
 
-register_frame = tk.Frame(notebook, bg="white")
-notebook.add(register_frame, text="Registrar Personal")
-
-tk.Label(register_frame, text="👤 Nom d'usuari", bg="white").pack(pady=(15, 5))
-reg_user = tk.Entry(register_frame, width=30)
-reg_user.pack(pady=5)
-
-tk.Label(register_frame, text="🔒 Contrasenya", bg="white").pack(pady=5)
-reg_pass = tk.Entry(register_frame, show="*", width=30)
-reg_pass.pack(pady=5)
-
-tk.Label(register_frame, text="🔒 Confirmar Contrasenya", bg="white").pack(pady=5)
-reg_confirm = tk.Entry(register_frame, show="*", width=30)
-reg_confirm.pack(pady=5)
-
-tk.Label(register_frame, text="👔 Rol", bg="white").pack(pady=5)
-reg_role = ttk.Combobox(
-    register_frame,
-    values=["admin", "metge", "infermeria", "vari"],
-    state="readonly",
-    width=27
-)
+# Selecció de Rol / Taula
+tk.Label(f_reg, text="👔 Rol de Personal*", bg="white", font=("Arial", 8, "bold")).pack(pady=(10,0))
+reg_role = ttk.Combobox(f_reg, values=["metge", "infermer", "vari"], state="readonly", width=27)
 reg_role.set("metge")
 reg_role.pack(pady=5)
 
-ttk.Button(register_frame, text="Registrar Usuari", command=register_user).pack(pady=15)
+# Secció de Compte (Separador visual)
+tk.Frame(f_reg, height=1, bg="#dee2e6").pack(fill="x", padx=30, pady=10)
 
+tk.Label(f_reg, text="👤 Nou Usuari de Sistema*", bg="white").pack()
+reg_user = tk.Entry(f_reg, width=30); reg_user.pack()
 
-# FOOTER
-footer = tk.Label(
-    root,
-    text="Projecte Intermodular ASIX 2025/2026 - Angel & Unai",
-    bg="#f0f4f7",
-    fg="gray",
-    font=("Arial", 9)
-)
-footer.pack(pady=5)
+tk.Label(f_reg, text="🔒 Contrasenya d'Accés*", bg="white").pack()
+reg_pass = tk.Entry(f_reg, show="*", width=30); reg_pass.pack()
+
+ttk.Button(f_reg, text="Completar Registre", command=register_user).pack(pady=20)
+
+# Footer
+tk.Label(root, text="Projecte ASIX 2025/2026 - Angel & Unai", bg="#f0f4f7", 
+         fg="gray", font=("Arial", 8)).pack(pady=5)
 
 root.mainloop()
