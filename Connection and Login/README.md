@@ -13,12 +13,12 @@ La interfície actua com el primer filtre de dades i gestor d'accessos:
 
 Aquest mòdul és el que connecta Python amb PostgreSQL, assegurant que la informació es tracti amb criteri:
 
-A. Seguretat i Xifrat (Hash)
+        A. Seguretat i Xifrat (Hash)
 Per complir amb els estàndards de seguretat, el sistema no guarda contrasenyes reals. Utilitza SHA-256:
 - En fer login o registre, la contrasenya es transforma en un hash.
 - A la base de dades només es guarda el resultat hexadecimal, protegint la privacitat del personal en cas de filtració.
 
-B. Gestió de la Jerarquia
+        B. Gestió de la Jerarquia
 La funció register_personal_db executa la lògica que vam definir al model ER. Per cada nou empleat, el sistema realitza una operació en cascada:
 -  Taula personal: crea el perfil humà (DNI, nom, email).
 -  Taula usuaris: crea les credencials d'accés vinculades a la persona.
