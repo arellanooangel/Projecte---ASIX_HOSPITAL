@@ -17,9 +17,9 @@ Per complir amb els estàndards de seguretat, el sistema no guarda contrasenyes 
 
     B. Gestió de la Jerarquia
 La funció register_personal_db executa la lògica que vam definir al model ER. Per cada nou empleat, el sistema realitza una operació en cascada:
-1. Taula personal: crea el perfil humà (DNI, nom, email).
-2. Taula usuaris: crea les credencials d'accés vinculades a la persona.
-3. Taula de Rol: segons el desplegable triat, insereix la informació específica a metge, infermer o vari.
+-  Taula personal: crea el perfil humà (DNI, nom, email).
+-  Taula usuaris: crea les credencials d'accés vinculades a la persona.
+-  Taula de Rol: segons el desplegable triat, insereix la informació específica a metge, infermer o vari.
 
 3. _Integritat i Control d'Errors_
 El backend està protegit per evitar dades corruptes o inconsistents:
@@ -28,6 +28,7 @@ El backend està protegit per evitar dades corruptes o inconsistents:
 
 
 **Connector a la BD**
+
 Aquest mòdul fa que en lloc de repetir la configuració del servidor en cada part del programa, centralitzes les credencials aquí per motius d'eficiència i seguretat.
 
 1. _Paràmetres de Xarxa i Accés_
