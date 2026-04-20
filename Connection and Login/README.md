@@ -36,6 +36,7 @@ El backend està protegit per evitar dades corruptes o inconsistents:
 Aquest mòdul fa que en lloc de repetir la configuració del servidor en cada part del programa, centralitzes les credencials aquí per motius d'eficiència i seguretat.
 
 1. _Paràmetres de Xarxa i Accés_
+
 El codi especifica exactament on s'ha d'anar a buscar la informació:
 - Host (192.168.2.5): indica que la base de dades no està en el teu propi ordinador, sinó en un servidor de la xarxa local. Això és propi d'un entorn real d'hospital on les dades resideixen en un servidor centralitzat.
 - Port (5432): Utilitza el port estàndard de PostgreSQL.
