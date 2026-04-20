@@ -38,22 +38,22 @@ DROP TABLE IF EXISTS especialitat CASCADE;
 
 CREATE TABLE especialitat (
     id_especialitat SERIAL PRIMARY KEY,
-    descripcio VARCHAR(255) NOT NULL
+    descripcio VARCHAR(100) NOT NULL
 );
 
 CREATE TABLE medicament (
     id_medicament SERIAL PRIMARY KEY,
-    nom VARCHAR(255) NOT NULL
+    nom VARCHAR(100) NOT NULL
 );
 
 CREATE TABLE aparell (
     id_aparell SERIAL PRIMARY KEY,
-    descripcio VARCHAR(255) NOT NULL
+    descripcio VARCHAR(100) NOT NULL
 );
 
 CREATE TABLE planta (
     id_planta SERIAL PRIMARY KEY,
-    descripcio VARCHAR(255) NOT NULL
+    descripcio VARCHAR(100) NOT NULL
 );
 
 CREATE TABLE pacient (
@@ -70,7 +70,7 @@ CREATE TABLE personal (
     nom VARCHAR(100) NOT NULL,
     cognom1 VARCHAR(100) NOT NULL,
     cognom2 VARCHAR(100),
-    email VARCHAR(255) UNIQUE
+    email VARCHAR(100) UNIQUE
 );
 
 -- =========================
@@ -108,17 +108,16 @@ ON CONFLICT (username) DO NOTHING;
 -- =========================
 -- ROLES PERSONAL
 -- =========================
-
 CREATE TABLE vari (
     id_personal INTEGER PRIMARY KEY,
-    feina VARCHAR(255) NOT NULL,
+    feina VARCHAR(100) NOT NULL,
     FOREIGN KEY (id_personal) REFERENCES personal(id_personal)
 );
 
 CREATE TABLE metge (
     id_personal INTEGER PRIMARY KEY,
-    estudis VARCHAR(255) NOT NULL,
-    experiencia VARCHAR(255),
+    estudis TEXT NOT NULL,
+    experiencia TEXT NO NULL,
     id_especialitat INTEGER NOT NULL,
 
     FOREIGN KEY (id_personal) REFERENCES personal(id_personal),
@@ -127,8 +126,8 @@ CREATE TABLE metge (
 
 CREATE TABLE infermer (
     id_personal INTEGER PRIMARY KEY,
-    curs VARCHAR(255),
-    experiencia VARCHAR(255),
+    curs TEXT,
+    experiencia TEXT,
 
     FOREIGN KEY (id_personal) REFERENCES personal(id_personal)
 );
@@ -139,7 +138,7 @@ CREATE TABLE infermer (
 
 CREATE TABLE habitacio (
     id_habitacio SERIAL PRIMARY KEY,
-    descripcio VARCHAR(255) NOT NULL,
+    descripcio VARCHAR(100) NOT NULL,
     id_planta INTEGER NOT NULL,
     FOREIGN KEY (id_planta) REFERENCES planta(id_planta)
 );
@@ -192,7 +191,7 @@ CREATE TABLE ingres (
 
 CREATE TABLE operacio (
     id_operacio SERIAL PRIMARY KEY,
-    descripcio VARCHAR(255) NOT NULL,
+    descripcio TEXT NOT NULL,
     data_hora TIMESTAMP NOT NULL,
     targeta_sanitaria VARCHAR(20) NOT NULL,
     id_metge INTEGER NOT NULL,
