@@ -43,6 +43,7 @@ El codi especifica exactament on s'ha d'anar a buscar la informació:
 - Credencials: defineix l'usuari (postgres) i la base de dades (hospital) on es crearan les taules de personal, quiròfans i usuaris.
 
 2. _OperationalError_
+
 El codi està preparat per a imprevistos mitjançant un bloc try-except:
 - Si el servidor de la BD està apagat, el cable de xarxa desconnectat o la contrasenya és incorrecta, el programa no "petarà" (no es tancarà bruscament).
 - En lloc d'això, captura l'error (OperationalError), imprimeix un missatge informatiu i retorna None, permetent que la resta de l'aplicació gestioni el problema de forma controlada (mostrant un avís a l'usuari).
