@@ -244,10 +244,6 @@ CREATE TABLE operacio_infermer (
     FOREIGN KEY (id_infermer) REFERENCES infermer(id_personal)
 );
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 1183382a22b93740cdaa9c87ac736f238bf2aecb
 -- =========================
 -- VISTES EMMASCARADES
 -- =========================
