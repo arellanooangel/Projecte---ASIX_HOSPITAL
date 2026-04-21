@@ -1,25 +1,35 @@
--- Eliminar rols i permisos si existeixen per proves
-REVOKE ALL ON ALL TABLES IN SCHEMA public FROM PUBLIC;
-REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM PUBLIC;
+SET search_path TO hospital;
+-- ============================================
+-- ELIMINAR ROLS PER FER PROVES
+-- ============================================
+REVOKE ALL ON ALL TABLES IN SCHEMA hospital FROM PUBLIC;
+REVOKE ALL ON ALL SEQUENCES IN SCHEMA hospital FROM PUBLIC;
 DROP ROLE IF EXISTS rol_admin;
 DROP ROLE IF EXISTS rol_metge;
 DROP ROLE IF EXISTS rol_infermer;
 DROP ROLE IF EXISTS rol_vari;
 DROP ROLE IF EXISTS rol_consulta;
 
--- Crear rols
+-- ============================================
+-- CREAR ROLS
+-- ============================================
 CREATE ROLE rol_admin;
 CREATE ROLE rol_metge;
 CREATE ROLE rol_infermer;
 CREATE ROLE rol_vari;
 CREATE ROLE rol_consulta;
 
+GRANT USAGE ON SCHEMA hospital TO rol_admin;
+GRANT USAGE ON SCHEMA hospital TO rol_metge;
+GRANT USAGE ON SCHEMA hospital TO rol_infermer;
+GRANT USAGE ON SCHEMA hospital TO rol_vari;
+GRANT USAGE ON SCHEMA hospital TO rol_consulta;
 
 -- ============================================
 -- PERMISOS ROL_ADMIN
 -- ============================================
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO rol_admin;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO rol_admin;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA hopsital TO rol_admin;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA hospital TO rol_admin;
 
 
 -- ============================================
@@ -103,6 +113,7 @@ GRANT SELECT ON infermer TO rol_consulta;
 GRANT SELECT ON inferm_planta TO rol_consulta;
 GRANT SELECT ON inferm_metge TO rol_consulta;
 GRANT SELECT ON habitacio TO rol_consulta;
+GRANT SELECT ON vari TO rol_consulta;
 GRANT SELECT ON quirofan TO rol_consulta;
 GRANT SELECT ON quirofan_aparell TO rol_consulta;
 GRANT SELECT ON visita TO rol_consulta;
@@ -112,4 +123,5 @@ GRANT SELECT ON visita_medicament TO rol_consulta;
 GRANT SELECT ON operacio_infermer TO rol_consulta;
 
 -- Usuari admin creat
+CREATE ROLE "ua-admin" WITH LOGIN PASSWORD 'admin123';
 GRANT rol_admin TO "ua-admin";
