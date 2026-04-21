@@ -81,12 +81,13 @@ GRANT USAGE ON SEQUENCE ingres_id_ingres_seq TO rol_infermer;
 -- ============================================
 GRANT SELECT ON aparell TO rol_vari;
 GRANT SELECT ON planta TO rol_vari;
-GRANT SELECT ON personal TO rol_vari;
 GRANT SELECT ON vari TO rol_vari;
 GRANT SELECT ON habitacio TO rol_vari;
 GRANT SELECT ON quirofan TO rol_vari;
 GRANT SELECT ON quirofan_aparell TO rol_vari;
-GRANT SELECT ON ingres TO rol_vari;
+GRANT SELECT ON v_personal_masked TO rol_vari;
+GRANT SELECT ON v_ingres_masked TO rol_vari;
+
 
 -- ============================================
 -- PERMISOS ROL_CONSULTA
