@@ -1,4 +1,6 @@
--- Eliminar rols si existeixen per proves
+-- Eliminar rols i permisos si existeixen per proves
+REVOKE ALL ON ALL TABLES IN SCHEMA public FROM PUBLIC;
+REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM PUBLIC;
 DROP ROLE IF EXISTS rol_admin;
 DROP ROLE IF EXISTS rol_metge;
 DROP ROLE IF EXISTS rol_infermer;
@@ -109,4 +111,4 @@ GRANT SELECT ON visita_medicament TO rol_consulta;
 GRANT SELECT ON operacio_infermer TO rol_consulta;
 
 -- Usuari admin creat
-GRANT rol_admin TO ua-admin;
+GRANT rol_admin TO "ua-admin";

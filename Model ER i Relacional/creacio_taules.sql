@@ -117,7 +117,7 @@ CREATE TABLE vari (
 CREATE TABLE metge (
     id_personal INTEGER PRIMARY KEY,
     estudis TEXT NOT NULL,
-    experiencia TEXT NO NULL,
+    experiencia TEXT NOT NULL,
     id_especialitat INTEGER NOT NULL,
 
     FOREIGN KEY (id_personal) REFERENCES personal(id_personal),
