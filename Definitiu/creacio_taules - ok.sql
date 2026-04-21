@@ -268,8 +268,3 @@ SELECT
     LEFT(cognom1, 2) || '***' AS cognom1,
     LEFT(cognom2, 2) || '***' AS cognom2,
     '***' AS email
-<<<<<<< HEAD
-FROM personal;
-=======
-FROM personal;
->>>>>>> 1183382a22b93740cdaa9c87ac736f238bf2aecb
