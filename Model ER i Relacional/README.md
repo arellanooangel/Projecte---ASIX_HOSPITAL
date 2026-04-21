@@ -1,4 +1,4 @@
-##MODEL ER 
+MODEL ER 
 
 En la creació d'aquest model ER ens hem topat amb reptes i hem tingut algunes consideracions.  
 Considerem que el personal pot tenir més d'un usuari, per evitar-nos problemes a futur.  
