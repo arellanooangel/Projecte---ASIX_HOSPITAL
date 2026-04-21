@@ -243,3 +243,36 @@ CREATE TABLE operacio_infermer (
     FOREIGN KEY (id_operacio) REFERENCES operacio(id_operacio),
     FOREIGN KEY (id_infermer) REFERENCES infermer(id_personal)
 );
+
+CREATE OR REPLACE VIEW v_personal_masked AS
+SELECT
+    id_personal,
+    '***' AS dni,
+    LEFT(nom, 2) || '***' AS nom,
+    LEFT(cognom1, 2) || '***' AS cognom1,
+    LEFT(cognom2, 2) || '***' AS cognom2,
+    '***' AS email
+FROM personal;
+
+
+-- =========================
+-- VISTES EMMASCARADES
+-- =========================
+CREATE OR REPLACE VIEW v_ingres_masked AS
+SELECT
+    id_ingres,
+    data_ingres,
+    data_alta,
+    LEFT(targeta_sanitaria, 4) || '***' AS targeta_sanitaria,
+    id_habitacio
+FROM ingres;
+
+CREATE OR REPLACE VIEW v_personal_masked AS
+SELECT
+    id_personal,
+    '***' AS dni,
+    LEFT(nom, 2) || '***' AS nom,
+    LEFT(cognom1, 2) || '***' AS cognom1,
+    LEFT(cognom2, 2) || '***' AS cognom2,
+    '***' AS email
+FROM personal;
