@@ -22,8 +22,7 @@
 | operacio          | ALL       | SIUD      | S            | -        | S            |
 | visita_medicament | ALL       | SIUD      | S            | -        | S            |
 | operacio_infermer | ALL       | SIUD      | S            | -        | S            |
-| v_personal_masked | ALL       | -         | -            | S        | -            |
-| v_ingres_masked   | ALL       | -         | -            | S        | -            |
+
 ## Llegenda
 
 | Abreviació | Significat        |
@@ -37,6 +36,4 @@
 
 ## Consideracions
 Hem creat el rol de consulta per poder recollir dades en un futur com estadístiques. El metge ha de ser el rol amb més pes després de l'administrador, ja que serà qui insereixi més informació que la resta. Considerem que un infermer pot modificar i inserir ingresos, pero no borrar-los.
-El datamasking està implementat a la creació de taules mitjançant les vistes, i els permisos otorgats a l'SQL que es troba en aquesta mateixa carpeta.
-Les dades emmascarades han siguit: DNI, nom, cognom1, cognom2 i targeta_sanitaria. Aquestes dades es troven a les vistes v_personal_masked i v_ingres_masked.
 
