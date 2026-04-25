@@ -28,7 +28,7 @@ GRANT USAGE ON SCHEMA hospital TO rol_consulta;
 -- ============================================
 -- PERMISOS ROL_ADMIN
 -- ============================================
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA hopsital TO rol_admin;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA hopspital TO rol_admin;
 GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA hospital TO rol_admin;
 
 
