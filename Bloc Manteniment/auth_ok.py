@@ -1,9 +1,8 @@
-import psycopg2
 from tkinter import messagebox, simpledialog
 from db_connexio_ok import get_connection
 
 def login_user_db(username, password):
-    """Verifica les credencials (Apartat 3.1)."""
+    """Verifica las credenciales en la tabla usuaris con hash SHA-256."""
     conn = get_connection()
     if not conn: return None
     try:
@@ -28,50 +27,77 @@ def login_user_db(username, password):
             cur.execute(f"SELECT 1 FROM {role} WHERE id_personal = %s", (id_p,))
             if cur.fetchone(): return (role, nom, cognom)
         return ("usuari", nom, cognom)
+    except Exception as e:
+        messagebox.showerror("Error Login", f"Error: {e}")
+        return None
     finally:
-        conn.close()
+        if conn: conn.close()
 
 def register_personal_db(dni, nom, c1, c2, email, username, password, role):
-    """Insereix nou personal i usuari (Apartat 3.1 i 3.3)."""
+    """Inserta un nuevo trabajador. El DNI se pasa a mayúsculas para el Trigger."""
+    conn = get_connection()
+    if not conn: return False
+    dni = dni.upper() 
+    try:
+        cur = conn.cursor()
+        cur.execute("SET search_path TO hospital;")
+        
+        cur.execute("""
+            INSERT INTO personal (dni, nom, cognom1, cognom2, email)
+            VALUES (%s, %s, %s, %s, %s) RETURNING id_personal
+        """, (dni, nom, c1, c2, email if email else None))
+        id_pers = cur.fetchone()[0]
+
+        cur.execute("""
+            INSERT INTO usuaris (username, password, estat, id_personal)
+            VALUES (%s, encode(digest(%s, 'sha256'), 'hex'), 'actiu', %s)
+        """, (username, password, id_pers))
+
+        if role == "metge":
+            cur.execute("SELECT id_especialitat FROM hospital.especialitat LIMIT 1")
+            res_esp = cur.fetchone()
+            id_esp = res_esp[0] if res_esp else 1
+            cur.execute("INSERT INTO hospital.metge VALUES (%s, %s, %s, %s)", 
+                       (id_pers, "Grau Medicina", "Sense exp.", id_esp))
+        elif role == "infermer":
+            cur.execute("INSERT INTO hospital.infermer VALUES (%s, %s, %s)", 
+                       (id_pers, "Grau Infermeria", "Sense exp."))
+        elif role == "vari":
+            cur.execute("INSERT INTO hospital.vari VALUES (%s, %s)", 
+                       (id_pers, "Administració"))
+
+        conn.commit()
+        return True
+    except Exception as e:
+        if conn: conn.rollback()
+        messagebox.showerror("Error Registre", f"Error de validación o BD:\n{e}")
+        return False
+    finally:
+        if conn: conn.close()
+
+def insertar_pacient_db(ts, nom, c1, c2, data_naix):
+    """Inserta un paciente con los 5 campos requeridos por la tabla 'pacient'."""
     conn = get_connection()
     if not conn: return False
     try:
         cur = conn.cursor()
         cur.execute("SET search_path TO hospital;")
-        cur.execute("INSERT INTO personal (dni, nom, cognom1, cognom2, email) VALUES (%s,%s,%s,%s,%s) RETURNING id_personal", 
-                    (dni, nom, c1, c2, email))
-        id_p = cur.fetchone()[0]
-        cur.execute("INSERT INTO usuaris (username, password, estat, id_personal) VALUES (%s, encode(digest(%s, 'sha256'), 'hex'), 'actiu', %s)", 
-                    (username, password, id_p))
-        cur.execute(f"INSERT INTO {role} (id_personal) VALUES (%s)", (id_p,))
+        cur.execute("""
+            INSERT INTO pacient (targeta_sanitaria, nom, cognom1, cognom2, data_naixement)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (ts, nom, c1, c2 if c2 else None, data_naix))
         conn.commit()
         return True
     except Exception as e:
         if conn: conn.rollback()
+        messagebox.showerror("Error Pacient", f"Error al insertar: {e}")
         return False
     finally:
-        conn.close()
-
-def insertar_pacient_db(ts, nom, c1, data):
-    """Alta de pacients (Apartat 3.2)."""
-    conn = get_connection()
-    if not conn: return False
-    try:
-        cur = conn.cursor()
-        cur.execute("INSERT INTO hospital.pacient (targeta_sanitaria, nom, cognom1, data_naixement) VALUES (%s, %s, %s, %s)", 
-                    (ts, nom, c1, data))
-        conn.commit()
-        return True
-    except Exception as e:
-        messagebox.showerror("Error", f"No s'ha pogut registrar el pacient: {e}")
-        return False
-    finally:
-        conn.close()
+        if conn: conn.close()
 
 def verify_admin_credentials():
-    """Validació per a pestanyes restringides."""
-    u = simpledialog.askstring("Admin", "Usuari administrador:")
-    if not u: return False
-    p = simpledialog.askstring("Admin", "Contrasenya:", show="*")
+    u = simpledialog.askstring("Validación", "Usuari administrador:")
+    p = simpledialog.askstring("Validación", "Contrasenya:", show="*")
+    if not u or not p: return False
     res = login_user_db(u, p)
     return res is not None and res[0] == "admin"

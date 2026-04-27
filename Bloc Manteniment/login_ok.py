@@ -13,7 +13,6 @@ def login_user():
     # Verifica credencials consultant la base de dades
     user_info = login_user_db(u, p) 
     if user_info:
-        # user_info sol ser una tupla amb (rol, nom, cognom)
         messagebox.showinfo("Sistema UA", f"Login correcte.\nBenvingut/da: {user_info[1]} {user_info[2]}")
     else:
         messagebox.showerror("Error", "Usuari o contrasenya incorrectes o compte inactiu.")
@@ -55,8 +54,8 @@ def obrir_alta_pacient():
     data = tk.Entry(f); data.pack()
     
     # Botó per guardar les dades cridant a la funció d'inserció
-    tk.Button(f, text="Guardar", bg="#2ecc71", fg="white", 
-              command=lambda: insertar_pacient_db(ts.get(), nom.get(), cog.get(), data.get()) and f.destroy()).pack(pady=20)
+    ttk.Button(f, text="Registrar Pacient", 
+           command=lambda: insertar_pacient_db(ts.get(), nom.get(), cog.get(), "", data.get()) and f.destroy()).pack(pady=20)
 
 def on_tab_changed(event):
     """Restringeix l'accés a certes pestanyes només per a l'administrador."""
