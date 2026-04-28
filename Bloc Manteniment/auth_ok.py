@@ -20,12 +20,12 @@ def login_user_db(username, password):
         result = cur.fetchone()
         if not result: return None
         
-        id_p, nom, cognom = result
+        id_personal, nom, cognom = result
         if username == 'ua-admin': return ("admin", nom, cognom)
         
-        for role in ['metge', 'infermer', 'vari']:
-            cur.execute(f"SELECT 1 FROM {role} WHERE id_personal = %s", (id_p,))
-            if cur.fetchone(): return (role, nom, cognom)
+        for estat in ['metge', 'infermer', 'vari']:
+            cur.execute(f"SELECT 1 FROM {estat} WHERE id_personal = %s", (id_personal,))
+            if cur.fetchone(): return (estat, nom, cognom)
         return ("usuari", nom, cognom)
     except Exception as e:
         messagebox.showerror("Error Login", f"Error: {e}")
@@ -46,25 +46,25 @@ def register_personal_db(dni, nom, cognom1, cognom2, email, username, password, 
             INSERT INTO personal (dni, nom, cognom1, cognom2, email)
             VALUES (%s, %s, %s, %s, %s) RETURNING id_personal
         """, (dni, nom, cognom1, cognom2, email if email else None))
-        id_pers = cur.fetchone()[0]
+        id_personal = cur.fetchone()[0]
 
         cur.execute("""
             INSERT INTO usuaris (username, password, estat, id_personal)
             VALUES (%s, encode(digest(%s, 'sha256'), 'hex'), 'actiu', %s)
-        """, (username, password, id_pers))
+        """, (username, password, id_personal))
 
-        if role == "metge":
+        if estat == "metge":
             cur.execute("SELECT id_especialitat FROM hospital.especialitat LIMIT 1")
             res_esp = cur.fetchone()
             id_esp = res_esp[0] if res_esp else 1
             cur.execute("INSERT INTO hospital.metge VALUES (%s, %s, %s, %s)", 
-                       (id_pers, "Grau Medicina", "Sense exp.", id_esp))
-        elif role == "infermer":
+                       (id_personal, "Grau Medicina", "Sense exp.", id_esp))
+        elif estat == "infermer":
             cur.execute("INSERT INTO hospital.infermer VALUES (%s, %s, %s)", 
-                       (id_pers, "Grau Infermeria", "Sense exp."))
-        elif role == "vari":
+                       (id_personal, "Grau Infermeria", "Sense exp."))
+        elif estat == "vari":
             cur.execute("INSERT INTO hospital.vari VALUES (%s, %s)", 
-                       (id_pers, "Administració"))
+                       (id_personal, "Administració"))
 
         conn.commit()
         return True
@@ -75,7 +75,7 @@ def register_personal_db(dni, nom, cognom1, cognom2, email, username, password, 
     finally:
         if conn: conn.close()
 
-def insertar_pacient_db(ts, nom, c1, c2, data_naix):
+def insertar_pacient_db(targeta_sanitaria, nom, cognom1, cognom2, data_naixament):
     """Inserta un paciente con los 5 campos requeridos por la tabla 'pacient'."""
     conn = get_connection()
     if not conn: return False
@@ -85,7 +85,7 @@ def insertar_pacient_db(ts, nom, c1, c2, data_naix):
         cur.execute("""
             INSERT INTO pacient (targeta_sanitaria, nom, cognom1, cognom2, data_naixement)
             VALUES (%s, %s, %s, %s, %s)
-        """, (ts, nom, c1, c2 if c2 else None, data_naix))
+        """, (targeta_sanitaria, nom, cognom1, cognom2 if cognom2 else None, data_naixament))
         conn.commit()
         return True
     except Exception as e:
