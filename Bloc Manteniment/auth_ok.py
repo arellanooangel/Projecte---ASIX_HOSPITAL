@@ -33,7 +33,7 @@ def login_user_db(username, password):
     finally:
         if conn: conn.close()
 
-def register_personal_db(dni, nom, c1, c2, email, username, password, role):
+def register_personal_db(dni, nom, cognom1, cognom2, email, username, password, estat):
     """Inserta un nuevo trabajador. El DNI se pasa a mayúsculas para el Trigger."""
     conn = get_connection()
     if not conn: return False
@@ -45,7 +45,7 @@ def register_personal_db(dni, nom, c1, c2, email, username, password, role):
         cur.execute("""
             INSERT INTO personal (dni, nom, cognom1, cognom2, email)
             VALUES (%s, %s, %s, %s, %s) RETURNING id_personal
-        """, (dni, nom, c1, c2, email if email else None))
+        """, (dni, nom, cognom1, cognom2, email if email else None))
         id_pers = cur.fetchone()[0]
 
         cur.execute("""
