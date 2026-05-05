@@ -7,7 +7,8 @@ def get_connection():
             host="192.168.2.5",
             database="hospital",
             user="ua-admin", 
-            password="admin123"
+            password="admin123",
+            sslmode="require"  # Força el xifrat SSL amb el certificat autofirmat
         )
         return connection
     except Exception as e:
