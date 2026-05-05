@@ -1,138 +1,115 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
-# Importació de les funcions lògiques des del fitxer extern 'auth_ok.py'
-from auth_ok import (register_personal_db, login_user_db, verify_admin_credentials, insertar_pacient_db)
+from tkinter import ttk, messagebox, simpledialog
+from auth_ok import * 
 
-# ============================================================
-# FUNCIONS DE LÒGICA (CONTROLADORS)
-# ============================================================
-
-def login_user():
-    """Gestiona l'entrada de l'usuari al sistema."""
-    u, p = log_user.get().strip(), log_pass.get()
-    # Verifica credencials consultant la base de dades
-    user_info = login_user_db(u, p) 
-    if user_info:
-        messagebox.showinfo("Sistema UA", f"Login correcte.\nBenvingut/da: {user_info[1]} {user_info[2]}")
+def executar_login():
+    u, p = entry_user.get(), entry_pass.get()
+    usuari_valid = login_user_db(u, p)
+    if usuari_valid:
+        messagebox.showinfo("Login Correcte", f"Benvingut/da, {usuari_valid[1]}")
+        ventana_login.destroy()
+        obrir_interfaz_principal()
     else:
-        messagebox.showerror("Error", "Usuari o contrasenya incorrectes o compte inactiu.")
+        messagebox.showerror("Error", "Usuari o contrasenya incorrectes.")
 
-def register_user():
-    """Recull les dades dels camps d'entrada i registra nou personal."""
-    # Obtenim els valors eliminant espais en blanc innecessaris
-    d, n, c1, c2, em = reg_dni.get().strip(), reg_nom.get().strip(), \
-                       reg_c1.get().strip(), reg_c2.get().strip(), reg_email.get().strip()
-    u, p = reg_user.get().strip(), reg_pass.get()
-    role = reg_role.get()
+def obrir_interfaz_principal():
+    root = tk.Tk()
+    root.title("UA Hospital Blanes - Sistema de Gestió")
+    root.geometry("600x750")
+    root.configure(bg="#f0f4f7")
 
-    # Validació: Comprova que els camps obligatoris no estiguin buits
-    if not d or not n or not u or not p or not em:
-        messagebox.showerror("Error", "Els camps amb (*) són obligatoris.")
-        return
+    header = tk.Frame(root, bg="#2c3e50", height=80)
+    header.pack(fill="x")
+    tk.Label(header, text="🏥 GESTIÓ HOSPITALÀRIA", font=("Segoe UI", 16, "bold"), fg="white", bg="#2c3e50").pack(pady=20)
 
-    # Intenta fer la inserció a la BD
-    if register_personal_db(d, n, c1, c2, em, u, p, role):
-        messagebox.showinfo("Èxit", f"Personal registrat correctament a: {role.upper()}")
-        # Netaja de camps després d'un registre correcte
-        for entry in [reg_dni, reg_nom, reg_c1, reg_c2, reg_email, reg_user, reg_pass]:
-            entry.delete(0, tk.END)
-    else:
-        messagebox.showerror("Error", "No s'ha pogut registrar (DNI o Usuari duplicat).")
+    notebook = ttk.Notebook(root)
+    notebook.pack(expand=True, fill="both", padx=20, pady=20)
 
-def obrir_alta_pacient():
-    """Crea una finestra emergent (Toplevel) per a l'alta de pacients (Apartat 3.2)."""
-    f = tk.Toplevel(); f.title("3.2 Alta de Pacient"); f.geometry("300x350")
-    
-    # Disseny del formulari d'alta de pacients
-    tk.Label(f, text="Targeta Sanitària:").pack(pady=5)
-    ts = tk.Entry(f); ts.pack()
-    tk.Label(f, text="Nom:").pack(pady=5)
-    nom = tk.Entry(f); nom.pack()
-    tk.Label(f, text="Cognom:").pack(pady=5)
-    cog = tk.Entry(f); cog.pack()
-    tk.Label(f, text="Data (AAAA-MM-DD):").pack(pady=5)
-    data = tk.Entry(f); data.pack()
-    
-    # Botó per guardar les dades cridant a la funció d'inserció
-    ttk.Button(f, text="Registrar Pacient", 
-           command=lambda: insertar_pacient_db(ts.get(), nom.get(), cog.get(), "", data.get()) and f.destroy()).pack(pady=20)
+    # --- PESTANYA GESTIÓ ---
+    f_gestio = tk.Frame(notebook, bg="white")
+    notebook.add(f_gestio, text=" ⚙️ Gestió ")
 
-def on_tab_changed(event):
-    """Restringeix l'accés a certes pestanyes només per a l'administrador."""
-    tab = event.widget.tab(event.widget.select(), "text")
-    # Si la pestanya és de gestió, demana credencials d'admin
-    if tab in ["Registrar Personal", "Manteniment"]:
-        if not verify_admin_credentials():
-            messagebox.showwarning("Accés Denegat", "Aquesta àrea és només per a l'administrador.")
-            event.widget.select(0) # Torna automàticament a la pestanya de Login
+    def ui_alta_personal():
+        dialeg = tk.Toplevel(root); dialeg.title("Alta Personal"); dialeg.geometry("400x600"); dialeg.grab_set()
+        fields = ["DNI", "Nom", "Primer Cognom", "Email", "Usuari", "Contrasenya"]
+        entries = {}
+        for f in fields:
+            tk.Label(dialeg, text=f).pack(pady=2)
+            e = tk.Entry(dialeg, show="*" if f == "Contrasenya" else ""); e.pack(pady=5); entries[f] = e
+        
+        combo_rol = ttk.Combobox(dialeg, values=["metge", "infermer", "vario"], state="readonly")
+        combo_rol.current(0); combo_rol.pack(pady=10)
 
-# ============================================================
-# CONFIGURACIÓ DE LA INTERFÍCIE GRÀFICA PRINCIPAL
-# ============================================================
+        def guardar_p():
+            if register_personal_db(entries["DNI"].get(), entries["Nom"].get(), entries["Primer Cognom"].get(), "", 
+                                    entries["Email"].get(), entries["Usuari"].get(), entries["Contrasenya"].get(), combo_rol.get()):
+                messagebox.showinfo("Èxit", "Personal registrat."); dialeg.destroy()
+            else: messagebox.showerror("Error", "Dades incorrectes.")
+        tk.Button(dialeg, text="GUARDAR", command=guardar_p, bg="#27ae60", fg="white", pady=10).pack(fill="x", padx=50)
 
-root = tk.Tk()
-root.title("UA Hospital - Gestió de Personal")
-root.geometry("450x650")
-root.resizable(False, False)
-root.configure(bg="#f0f4f7")
+    def ui_alta_pacient():
+        dialeg = tk.Toplevel(root); dialeg.title("Alta Pacient"); dialeg.geometry("400x550"); dialeg.grab_set()
+        fields = [("Targeta Sanitària", "ts"), ("Nom", "nom"), ("Primer Cognom", "c1"), ("Segon Cognom", "c2"), ("Data (AAAA-MM-DD)", "data")]
+        entries = {}
+        for label, key in fields:
+            tk.Label(dialeg, text=label).pack(pady=2)
+            e = tk.Entry(dialeg); e.pack(pady=5, ipady=3); entries[key] = e
 
-# Configuració d'estils per a un aspecte més modern
-style = ttk.Style()
-style.theme_use('clam')
-style.configure('TNotebook.Tab', font=('Arial', 10, 'bold'), padding=[10, 5])
-style.configure('TButton', font=('Arial', 10, 'bold'))
+        def validar_i_executar_alta():
+            # Crida a la funció de auth_ok.py (evitem conflicte de noms)
+            exit = insertar_pacient_db(entries["ts"].get(), entries["nom"].get(), entries["c1"].get(), entries["c2"].get(), entries["data"].get())
+            if exit:
+                messagebox.showinfo("Èxit", "Pacient d'alta."); dialeg.destroy()
+            else: messagebox.showerror("Error", "Error al registre.")
 
-# Títol de l'aplicació
-tk.Label(root, text="🏥 UA - Gestió Hospitalària", font=("Arial", 16, "bold"), 
-          bg="#f0f4f7", fg="#2c3e50").pack(pady=15)
+        tk.Button(dialeg, text="REGISTRAR PACIENT", command=validar_i_executar_alta, bg="#34495e", fg="white", pady=10).pack(fill="x", padx=50, pady=20)
 
-# Creació del contenidor de pestanyes
-notebook = ttk.Notebook(root)
-notebook.pack(expand=True, fill="both", padx=20, pady=5)
-# Enllaç de l'esdeveniment de canvi de pestanya amb la funció de seguretat
-notebook.bind("<<NotebookTabChanged>>", on_tab_changed)
+    tk.Button(f_gestio, text="➕ REGISTRAR NOU PERSONAL", command=ui_alta_personal, bg="#3498db", fg="white", font=("Segoe UI", 10, "bold"), pady=12, width=35).pack(pady=20)
+    tk.Button(f_gestio, text="📋 DONAR D'ALTA PACIENT", command=ui_alta_pacient, bg="#2c3e50", fg="white", font=("Segoe UI", 10, "bold"), pady=12, width=35).pack(pady=10)
 
-# --- PESTANYA LOGIN ---
-f_log = tk.Frame(notebook, bg="white")
-notebook.add(f_log, text="Iniciar Sessió")
-tk.Label(f_log, text="👤 Nom d'Usuari", bg="white", font=("Arial", 9)).pack(pady=(40, 5))
-log_user = tk.Entry(f_log, width=30, justify='center'); log_user.pack()
-tk.Label(f_log, text="🔒 Contrasenya", bg="white", font=("Arial", 9)).pack(pady=(15, 5))
-log_pass = tk.Entry(f_log, show="*", width=30, justify='center'); log_pass.pack()
-ttk.Button(f_log, text="Entrar al Sistema", command=login_user).pack(pady=40)
+    # --- PESTANYA INFORMES ---
+    f_inf = tk.Frame(notebook, bg="white")
+    notebook.add(f_inf, text=" 📊 Informes ")
 
-# --- PESTANYA REGISTRE ---
-f_reg = tk.Frame(notebook, bg="white")
-notebook.add(f_reg, text="Registrar Personal")
-# Generació dinàmica de camps de text per al registre
-fields = [("DNI*", "reg_dni"), ("Nom*", "reg_nom"), ("Primer Cognom*", "reg_c1"), ("Segon Cognom", "reg_c2"), ("Email*", "reg_email")]
-for lbl, var_name in fields:
-    tk.Label(f_reg, text=lbl, bg="white", font=("Arial", 8)).pack(pady=(4,0))
-    en = tk.Entry(f_reg, width=35)
-    en.pack()
-    globals()[var_name] = en # Desa la referència de l'Entry de forma global
+    def mostrar_cens():
+        dades = get_informe_personal_db()
+        txt = "LLISTAT DE PERSONAL:\n" + "-"*30 + "\n"
+        for d in dades: txt += f"• {d[1]} {d[2]}\n  DNI: {d[0]} | Email: {d[3]}\n\n"
+        messagebox.showinfo("Cens", txt)
 
-# Selector de Rol (Desplegable)
-reg_role = ttk.Combobox(f_reg, values=["metge", "infermer", "vari"], state="readonly", width=32); reg_role.set("metge"); reg_role.pack(pady=5)
-tk.Frame(f_reg, height=1, bg="#dee2e6").pack(fill="x", padx=40, pady=10) # Línia divisòria
+    def mostrar_visites():
+        dades = get_visites_per_dia_db()
+        txt = "VISITES PER DIA:\n" + "-"*30 + "\n"
+        for d in dades: txt += f"Data: {d[0]} --> {d[1]} visites\n"
+        messagebox.showinfo("Visites", txt)
 
-tk.Label(f_reg, text="👤 Username*", bg="white", font=("Arial", 8)).pack()
-reg_user = tk.Entry(f_reg, width=35); reg_user.pack()
-tk.Label(f_reg, text="🔒 Password*", bg="white", font=("Arial", 8)).pack()
-reg_pass = tk.Entry(f_reg, show="*", width=35); reg_pass.pack()
-ttk.Button(f_reg, text="Registrar a la DB", command=register_user).pack(pady=20)
+    def ui_planta():
+        p = simpledialog.askinteger("Planta", "Número de planta:")
+        if p is not None:
+            r = get_recursos_planta_db(p)
+            messagebox.showinfo("Recursos", f"PLANTA {p}:\nHabitacions: {r['h']}\nQuiròfans: {r['q']}\nInfermeria: {r['i']}")
 
-# --- PESTANYA MANTENIMENT ---
-f_maint = tk.Frame(notebook, bg="white")
-notebook.add(f_maint, text="Manteniment")
-tk.Label(f_maint, text="🛠️ Gestió de l'Hospital", font=("Arial", 11, "bold"), bg="white").pack(pady=20)
-ttk.Button(f_maint, text="3.2 Alta de Pacients", width=30, command=obrir_alta_pacient).pack(pady=10)
-# Accés ràpid a altres funcionalitats (informatives en aquest cas)
-ttk.Button(f_maint, text="3.4/3.5 Veure Operacions/Visites", width=30, 
-            command=lambda: messagebox.showinfo("Info", "Funcions de consulta configurades a auth_ok.py")).pack(pady=10)
+    def mostrar_rank():
+        dades = get_ranking_metges_db()
+        txt = "RANKING METGES:\n" + "-"*30 + "\n"
+        for i, d in enumerate(dades, 1): txt += f"{i}. {d[0]} {d[1]}: {d[2]} visites\n"
+        messagebox.showinfo("Ranking", txt)
 
-# Peu de pàgina informatiu
-tk.Label(root, text="Base de Dades: PostgreSQL | Projecte ASIX 2026", bg="#f0f4f7", fg="gray", font=("Arial", 7)).pack(pady=5)
+    opts = [("🔍 Recursos per Planta", ui_planta), ("👥 Informe de Personal (Cens)", mostrar_cens), ("📅 Visites per Dia", mostrar_visites), ("🏆 Rànquing Metges", mostrar_rank)]
+    for t, c in opts:
+        tk.Button(f_inf, text=t, command=c, bg="white", fg="#2c3e50", relief="flat", highlightthickness=1, pady=10, width=40).pack(pady=5)
 
-# Inici del bucle principal de l'aplicació
-root.mainloop()
+    root.mainloop()
+
+# --- LOGIN ---
+ventana_login = tk.Tk()
+ventana_login.title("UA Hospital")
+ventana_login.geometry("400x550")
+ventana_login.configure(bg="#2c3e50")
+
+tk.Label(ventana_login, text="🏥 UA-HOSPITAL", font=("Segoe UI", 20, "bold"), bg="#2c3e50", fg="white").pack(pady=50)
+entry_user = tk.Entry(ventana_login, font=("Segoe UI", 12), justify='center'); entry_user.pack(pady=10, ipady=5)
+entry_pass = tk.Entry(ventana_login, font=("Segoe UI", 12), justify='center', show="*"); entry_pass.pack(pady=10, ipady=5)
+tk.Button(ventana_login, text="ACCEDIR", command=executar_login, bg="#27ae60", fg="white", font=("Segoe UI", 11, "bold"), pady=12, width=20).pack(pady=40)
+
+ventana_login.mainloop()

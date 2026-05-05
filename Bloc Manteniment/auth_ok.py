@@ -1,103 +1,127 @@
-from tkinter import messagebox, simpledialog
-from db_connexio_ok import get_connection
+import psycopg2
+import hashlib
 
-def login_user_db(username, password):
-    """Verifica las credenciales en la tabla usuaris con hash SHA-256."""
+def get_connection():
+    """Estableix la connexió amb la base de dades PostgreSQL."""
+    try:
+        return psycopg2.connect(
+            host="192.168.2.5",
+            database="hospital",
+            user="ua-admin",
+            password="admin123"
+        )
+    except Exception as e:
+        print(f"❌ Error de connexió: {e}")
+        return None
+
+def xifrar_password(password):
+    """Genera un hash SHA-256 de la contrasenya."""
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def login_user_db(u, p):
     conn = get_connection()
     if not conn: return None
     try:
         cur = conn.cursor()
         cur.execute("SET search_path TO hospital;")
+        pw_hash = xifrar_password(p)
         query = """
             SELECT u.id_personal, p.nom, p.cognom1 
-            FROM usuaris u
-            JOIN personal p ON u.id_personal = p.id_personal
-            WHERE u.username = %s 
-              AND u.password = encode(digest(%s, 'sha256'), 'hex')
-              AND u.estat = 'actiu'
+            FROM usuaris u 
+            JOIN personal p ON u.id_personal = p.id_personal 
+            WHERE u.username = %s AND u.password = %s
         """
-        cur.execute(query, (username, password))
-        result = cur.fetchone()
-        if not result: return None
-        
-        id_personal, nom, cognom = result
-        if username == 'ua-admin': return ("admin", nom, cognom)
-        
-        for estat in ['metge', 'infermer', 'vari']:
-            cur.execute(f"SELECT 1 FROM {estat} WHERE id_personal = %s", (id_personal,))
-            if cur.fetchone(): return (estat, nom, cognom)
-        return ("usuari", nom, cognom)
-    except Exception as e:
-        messagebox.showerror("Error Login", f"Error: {e}")
-        return None
+        cur.execute(query, (u, pw_hash))
+        return cur.fetchone()
     finally:
-        if conn: conn.close()
+        conn.close()
 
-def register_personal_db(dni, nom, cognom1, cognom2, email, username, password, estat):
-    """Inserta un nuevo trabajador. El DNI se pasa a mayúsculas para el Trigger."""
+def register_personal_db(dni, nom, c1, c2, email, user, pw, rol):
     conn = get_connection()
     if not conn: return False
-    dni = dni.upper() 
     try:
         cur = conn.cursor()
         cur.execute("SET search_path TO hospital;")
-        
         cur.execute("""
-            INSERT INTO personal (dni, nom, cognom1, cognom2, email)
+            INSERT INTO personal (dni, nom, cognom1, cognom2, email) 
             VALUES (%s, %s, %s, %s, %s) RETURNING id_personal
-        """, (dni, nom, cognom1, cognom2, email if email else None))
-        id_personal = cur.fetchone()[0]
-
-        cur.execute("""
-            INSERT INTO usuaris (username, password, estat, id_personal)
-            VALUES (%s, encode(digest(%s, 'sha256'), 'hex'), 'actiu', %s)
-        """, (username, password, id_personal))
-
-        if estat == "metge":
-            cur.execute("SELECT id_especialitat FROM hospital.especialitat LIMIT 1")
-            res_esp = cur.fetchone()
-            id_esp = res_esp[0] if res_esp else 1
-            cur.execute("INSERT INTO hospital.metge VALUES (%s, %s, %s, %s)", 
-                       (id_personal, "Grau Medicina", "Sense exp.", id_esp))
-        elif estat == "infermer":
-            cur.execute("INSERT INTO hospital.infermer VALUES (%s, %s, %s)", 
-                       (id_personal, "Grau Infermeria", "Sense exp."))
-        elif estat == "vari":
-            cur.execute("INSERT INTO hospital.vari VALUES (%s, %s)", 
-                       (id_personal, "Administració"))
-
+        """, (dni, nom, c1, c2, email))
+        id_p = cur.fetchone()[0]
+        pw_hash = xifrar_password(pw)
+        cur.execute("INSERT INTO usuaris (username, password, id_personal) VALUES (%s, %s, %s)", (user, pw_hash, id_p))
+        if rol == "metge": cur.execute("INSERT INTO metge (id_personal) VALUES (%s)", (id_p,))
         conn.commit()
         return True
     except Exception as e:
-        if conn: conn.rollback()
-        messagebox.showerror("Error Registre", f"Error de validación o BD:\n{e}")
-        return False
+        print(f"Error: {e}"); conn.rollback(); return False
     finally:
-        if conn: conn.close()
+        conn.close()
 
-def insertar_pacient_db(targeta_sanitaria, nom, cognom1, cognom2, data_naixament):
-    """Inserta un paciente con los 5 campos requeridos por la tabla 'pacient'."""
+def insertar_pacient_db(ts, nom, cognom1, cognom2, data_naix):
     conn = get_connection()
     if not conn: return False
     try:
         cur = conn.cursor()
-        cur.execute("SET search_path TO hospital;")
-        cur.execute("""
-            INSERT INTO pacient (targeta_sanitaria, nom, cognom1, cognom2, data_naixement)
-            VALUES (%s, %s, %s, %s, %s)
-        """, (targeta_sanitaria, nom, cognom1, cognom2 if cognom2 else None, data_naixament))
+        cur.execute("SET search_path TO hospital, public;")
+        
+        # Fem servir la sintaxi INSERT INTO taula VALUES (...) 
+        # ATENCIÓ: L'ordre ha de coincidir amb com vas crear la taula.
+        # Normalment: (targeta, nom, cognom1, cognom2, data_naixement)
+        query = """
+            INSERT INTO pacient 
+            VALUES (%s, %s, %s, %s, %s);
+        """
+        cur.execute(query, (ts, nom, cognom1, cognom2, data_naix))
         conn.commit()
         return True
     except Exception as e:
-        if conn: conn.rollback()
-        messagebox.showerror("Error Pacient", f"Error al insertar: {e}")
+        print("------------------------------------------")
+        print(f"❌ ERROR REAL: {e}")
+        print("------------------------------------------")
+        conn.rollback()
         return False
     finally:
-        if conn: conn.close()
+        conn.close()
 
-def verify_admin_credentials():
-    u = simpledialog.askstring("Validación", "Usuari administrador:")
-    p = simpledialog.askstring("Validación", "Contrasenya:", show="*")
-    if not u or not p: return False
-    res = login_user_db(u, p)
-    return res is not None and res[0] == "admin"
+def get_recursos_planta_db(p_id):
+    conn = get_connection()
+    res = {"h": 0, "q": 0, "i": 0}
+    if not conn: return res
+    try:
+        cur = conn.cursor(); cur.execute("SET search_path TO hospital;")
+        cur.execute("SELECT COUNT(*) FROM habitacio WHERE id_planta = %s", (p_id,)); res["h"] = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM quirofan WHERE id_planta = %s", (p_id,)); res["q"] = cur.fetchone()[0]
+        cur.execute("SELECT COUNT(*) FROM inferm_planta WHERE id_planta = %s", (p_id,)); res["i"] = cur.fetchone()[0]
+    finally: conn.close()
+    return res
+
+def get_informe_personal_db():
+    conn = get_connection()
+    if not conn: return []
+    try:
+        cur = conn.cursor(); cur.execute("SET search_path TO hospital;")
+        cur.execute("SELECT dni, nom, cognom1, email FROM personal ORDER BY cognom1 ASC;")
+        return cur.fetchall()
+    finally: conn.close()
+
+def get_visites_per_dia_db():
+    conn = get_connection()
+    if not conn: return []
+    try:
+        cur = conn.cursor(); cur.execute("SET search_path TO hospital;")
+        cur.execute("SELECT data_hora::date, COUNT(*) FROM visita GROUP BY 1 ORDER BY 1 DESC;")
+        return cur.fetchall()
+    finally: conn.close()
+
+def get_ranking_metges_db():
+    conn = get_connection()
+    if not conn: return []
+    try:
+        cur = conn.cursor(); cur.execute("SET search_path TO hospital;")
+        cur.execute("""
+            SELECT p.nom, p.cognom1, COUNT(v.id_visita) as total
+            FROM metge m JOIN personal p ON m.id_personal = p.id_personal
+            JOIN visita v ON m.id_personal = v.id_metge GROUP BY 1, 2 ORDER BY 3 DESC;
+        """)
+        return cur.fetchall()
+    finally: conn.close()
