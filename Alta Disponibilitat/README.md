@@ -188,6 +188,6 @@ echo "Restauració finalitzada correctament."
 ## 6.2 Verificació Post-Restauració
 Un cop finalitzat l'script, l'administrador ha de validar que el servei és operatiu:
 
-1. Accés: Intentar fer login amb l'usuari ua-admin.  
+1. Accés: Intentar fer login amb l'usuari `ua-admin`.  
 
-2. Dades: Verificar el recompte de pacients: SELECT count(*) FROM hospital.pacient;.
+2. Dades: Verificar el recompte de pacients: `SELECT count(*) FROM hospital.pacient;`.
