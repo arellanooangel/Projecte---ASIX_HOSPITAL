@@ -2,6 +2,7 @@
 -- BASE DE DADES
 -- =========================
 CREATE DATABASE hospital;
+\c hospital
 
 -- =========================
 -- CREAR SCHEMA
